@@ -1,0 +1,30 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+name                                    = "valrow"
+version                                 = "0.0.0-git"
+edition                                 = "2021"
+repository                              = "https://github.com/MaulingMonkey/valrow"
+documentation                           = "https://docs.rs/valrow"
+license                                 = "Apache-2.0 OR MIT"
+readme                                  = "Readme.md"
+description                             = "By-value borrows."
+keywords                                = ["borrow", "ffi"]
+categories                              = ["development-tools::ffi", "no-std::no-alloc"]            # https://crates.io/category_slugs
+rust-version                            = "1.71.0"                                                  # debugger_visualizer MSRV
+
+[package.metadata.docs.rs]
+all-features                            = true
+
+[lib]
+path                                    = "src/_lib.rs"
+
+[features]
+default                                 = ["core"]
+intrinsic                               = []            # unused
+core                                    = ["intrinsic"] # unused
+alloc                                   = ["core"]      # interop with alloc::{rc::Rc, sync::Arc}
+std                                     = ["alloc"]     # unused
+
+[dev-dependencies]
+abistr                                  = "0.1"

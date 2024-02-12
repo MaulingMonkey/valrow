@@ -1,0 +1,3 @@
+[toolchain]
+channel = "1.71.0" # debugger_visualizer MSRV
+profile = "minimal"

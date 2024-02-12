@@ -72,6 +72,18 @@ pub unsafe trait BorrowableByValue
     // : core::maker::Freeze // compiler internal, not exposed by even nightly: https://stdrs.dev/nightly/x86_64-pc-windows-gnu/core/marker/trait.Freeze.html
 {
     type Abi : Copy;
+
+    /// I considered adding this method "for safety" instead of allowing Valrow to spam `transmute`s.
+    /// However, in testing it became clear that this is would actually be counterproductive.
+    /// It tempts me to write `NonNull::from(&**self)` to implement `as_abi` for <code>[Arc]&lt;T&gt;</code>, but that narrows provenance.
+    /// The correct code would be something like `unsafe { NonNull::new_unchecked(Arc::into_raw(core::ptr::read(self))) }`.
+    ///
+    /// Additionally, it cannot take a sane default impl that would discourage writing such incorrect code:
+    /// ```text
+    /// error[E0512]: cannot transmute between types of different sizes, or dependently-sized types
+    /// ```
+    ///
+    #[cfg(xxx)] fn as_abi(&self) -> Self::Abi { unsafe { *core::mem::transmute::<&Self, &Self::Abi>(self) } }
 }
 
 // TODO: make a `#[derive(BorrowableByValueZst)]` that verifies the type is a ZST?

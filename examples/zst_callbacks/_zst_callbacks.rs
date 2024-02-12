@@ -1,4 +1,4 @@
-//! ## Example: Capture uncopyable ZSTs by ZST
+//! ## ZST Callbacks
 //!
 //! ```
 //! use valrow::*;
@@ -14,18 +14,19 @@
 //! call_me_back_asap(move || { dbg!(zst_ref);    }); // ❌ won't compile: `zst_ref` isn't a ZST
 //! call_me_back_asap(move || { dbg!(zst_borrow); }); // ✔️ will compile: `zst_borrow` *is* a ZST
 //!
-//! fn call_me_back_asap<Callback: Fn()>(callback: Callback) {
-//!     core::mem::forget(callback); // so adapt can assume a `Callback` is available
-//!     return unsafe { call_me_back_asap(adapt::<Callback>) };
+//! fn call_me_back_asap<Callback: FnMut()>(mut callback: Callback) {
+//!     let callback = &mut callback;
+//!     unsafe { call_me_back_asap(adapt::<Callback>) };
+//!     let _ = callback;
 //!
 //! #   #[cfg(nope)] {
 //!     #[link(name = "clibrary")] extern "C" { fn call_me_back_asap(callback: extern "C" fn()); }
 //! #   }
 //! #   unsafe fn call_me_back_asap(callback: extern "C" fn()) { callback() }
-//!     extern "C" fn adapt<Callback: Fn()>() {
+//!     extern "C" fn adapt<Callback: FnMut()>() {
 //!         // we leaked a `Callback` earlier, so assume we can make a reference to it:
 //!         let _ = StaticAssert::<Callback>::IS_ZST; // otherwise we need a real address
-//!         let callback = unsafe { core::ptr::NonNull::<Callback>::dangling().as_ref() };
+//!         let callback = unsafe { core::ptr::NonNull::<Callback>::dangling().as_mut() };
 //!         callback();
 //!     }
 //! }

@@ -23,11 +23,11 @@
 /// #[repr(C)] pub struct D(      Cell<usize> ); // ❌   direct interior mutability
 /// #[repr(C)] pub struct Z(             ()   ); // ✔️      no  interior mutability
 ///
-/// unsafe impl BorrowableByValue for A { type Abi =                 usize  ; } // ✔️ sound
-/// unsafe impl BorrowableByValue for B { type Abi = NonNull<        usize >; } // ✔️ sound
-/// unsafe impl BorrowableByValue for C { type Abi = NonNull<RefCell<usize>>; } // ✔️ sound
-/// unsafe impl BorrowableByValue for D { type Abi =                 usize  ; } // ❌ unsound
-/// unsafe impl BorrowableByValue for Z { type Abi =                   ()   ; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for A { type Abi =                 usize  ; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for B { type Abi = NonNull<        usize >; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for C { type Abi = NonNull<RefCell<usize>>; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for D { type Abi =                 usize  ; } // ❌ unsound
+/// unsafe impl valrow::Borrowable for Z { type Abi =                   ()   ; } // ✔️ sound
 /// #
 /// # impl Clone for B { fn clone(&self) -> Self { Self(self.0.clone()) } }
 /// # let b = B(Rc::new(42));
@@ -52,12 +52,12 @@
 ///     pub static SINGLETON : Singleton = Singleton(());
 /// }
 ///
-/// // this may assert if and only if `Singleton: BorrowableByValue`
+/// // this may assert if and only if `Singleton: Borrowable`
 /// fn may_assert_if_singleton_is_borrowable_by_value(a: &Singleton, b: &Singleton) {
 ///     assert!(addr_eq(a, b));
 /// }
 ///
-/// // this will become unsound if and only if `Singleton: BorrowableByValue`
+/// // this will become unsound if and only if `Singleton: Borrowable`
 /// fn unsound_if_singleton_is_borrowable_by_value(a: &Singleton, b: &Singleton) {
 ///     if ! addr_eq(a, b) {
 ///         unsafe { core::hint::unreachable_unchecked() };
@@ -68,7 +68,7 @@
 /// Most realistic uses of such by-address identities are already forbidden by the ban on interior mutability,
 /// but e.g. ZST Mutexes that track lock state by `HashMap<*const ZstMutex, std::sync::Mutex<()>>` could be broken by implementing this trait.
 ///
-pub unsafe trait BorrowableByValue
+pub unsafe trait Borrowable
     // : core::maker::Freeze // compiler internal, not exposed by even nightly: https://stdrs.dev/nightly/x86_64-pc-windows-gnu/core/marker/trait.Freeze.html
 {
     type Abi : Copy;
@@ -86,33 +86,33 @@ pub unsafe trait BorrowableByValue
     #[cfg(xxx)] fn as_abi(&self) -> Self::Abi { unsafe { *core::mem::transmute::<&Self, &Self::Abi>(self) } }
 }
 
-// TODO: make a `#[derive(BorrowableByValueZst)]` that verifies the type is a ZST?
-// TODO: make a `#[derive(BorrowableByValue)]` that verifies all members are `BorrowableByValue`?
-unsafe impl BorrowableByValue for () { type Abi = (); }
+// TODO: make a `#[derive(BorrowableZst)]` that verifies the type is a ZST?
+// TODO: make a `#[derive(Borrowable)]` that verifies all members are `Borrowable`?
+unsafe impl Borrowable for () { type Abi = (); }
 // TODO: add many more core/alloc/std types to improve the usability of said derive?
 
 #[cfg(feature = "alloc")] const _ : () = {
     use core::ptr::NonNull;
-    unsafe impl<T> BorrowableByValue for alloc::boxed ::Box<T> { type Abi = NonNull<T>; }
-    unsafe impl<T> BorrowableByValue for alloc::rc    ::Rc <T> { type Abi = NonNull<T>; }
-    unsafe impl<T> BorrowableByValue for alloc::sync  ::Arc<T> { type Abi = NonNull<T>; }
+    unsafe impl<T> Borrowable for alloc::boxed ::Box<T> { type Abi = NonNull<T>; }
+    unsafe impl<T> Borrowable for alloc::rc    ::Rc <T> { type Abi = NonNull<T>; }
+    unsafe impl<T> Borrowable for alloc::sync  ::Arc<T> { type Abi = NonNull<T>; }
 };
 
 
 
 /// I believe the standard library currently has no T where T: Copy and T: DirectInteriorMutability.
 /// This also means you cannot implement T: Copy + DirectInteriorMutability.
-/// This means it's currently safe to implement BorrowableByValue for all T: Copy.
+/// This means it's currently safe to implement Borrowable for all T: Copy.
 ///
 /// However: I don't think anyone's made a guarantee that this will always be the case for all future versions of the Rust stdlib?
 /// Additionally, if we try to make a generic definition, rustc complains `Rc` might be `Copy` in the future:
 ///
 /// ```text
-/// error[E0119]: conflicting implementations of trait `borrowable::BorrowableByValue` for type `Arc<_>`
+/// error[E0119]: conflicting implementations of trait `borrowable::Borrowable` for type `Arc<_>`
 ///    ...
 ///    = note: upstream crates may add a new impl of trait `core::marker::Copy` for type `alloc::sync::Arc<_>` in future versions
 /// ```
 ///
 /// As such, we don't actually implement this.
 ///
-#[cfg(xxx)] unsafe impl<T: Copy> BorrowableByValue for T { type Abi = T; }
+#[cfg(xxx)] unsafe impl<T: Copy> Borrowable for T { type Abi = T; }

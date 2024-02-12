@@ -49,8 +49,8 @@ mod sealed {
     #[doc = "C++'s global, users"   ] pub struct Users(());
     pub static CHANNELS : Mutex<Channels> = Mutex::new(Channels(()) );
     pub static USERS    : Mutex<Users   > = Mutex::new(Users(())    );
-    unsafe impl valrow::BorrowableByValue for Channels  { type Abi = (); }
-    unsafe impl valrow::BorrowableByValue for Users     { type Abi = (); }
+    unsafe impl valrow::Borrowable for Channels  { type Abi = (); }
+    unsafe impl valrow::Borrowable for Users     { type Abi = (); }
 }
 
 impl Channels {

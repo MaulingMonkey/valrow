@@ -9,7 +9,7 @@
 //! This is a bunch of pointless refcounting churn!
 //!
 //! An alternative would be for [`ID3D11ShaderResourceView`](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/Graphics/Direct3D11/struct.ID3D11ShaderResourceView.html)
-//! to implement <code>[valrow]::[BorrowableByValue]</code> and
+//! to implement <code>[valrow]::[Borrowable]</code> and
 //! <code>[PSSetShaderResources](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/Graphics/Direct3D11/struct.ID3D11DeviceContext.html#method.PSSetShaderResources)</code>
 //! changed to accept <code>&amp;&zwj;\[[Option]&lt;[Valrow]&lt;[ID3D11ShaderResourceView](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/Graphics/Direct3D11/struct.ID3D11ShaderResourceView.html)&gt;&gt;]</code> instead.
 use crate::{self as valrow, *};

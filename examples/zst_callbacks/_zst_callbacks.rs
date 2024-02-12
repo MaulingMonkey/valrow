@@ -4,7 +4,7 @@
 //! use valrow::*;
 //!
 //! #[derive(Debug)] pub struct ZST(()); // N.B.: not copyable for whatever reason!
-//! unsafe impl BorrowableByValue for ZST { type Abi = (); } // ✔️ sound
+//! unsafe impl valrow::Borrowable for ZST { type Abi = (); } // ✔️ sound
 //!
 //! let zst         = ZST(());
 //! let zst_ref     = &zst;

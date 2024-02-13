@@ -93,6 +93,7 @@ unsafe impl Borrowable for () { type Abi = (); }
 
 #[cfg(feature = "alloc")] const _ : () = {
     use core::ptr::NonNull;
+    #[cfg(xxx_borrowable_box)]
     unsafe impl<T> Borrowable for alloc::boxed ::Box<T> { type Abi = NonNull<T>; } // ❌ UB? See try_to_break_box_valrows below.
     unsafe impl<T> Borrowable for alloc::rc    ::Rc <T> { type Abi = NonNull<T>; }
     unsafe impl<T> Borrowable for alloc::sync  ::Arc<T> { type Abi = NonNull<T>; }
@@ -128,6 +129,7 @@ unsafe impl Borrowable for () { type Abi = (); }
 /// ```cmd
 /// rustup toolchain install nightly -c miri
 ///
+/// set RUSTFLAGS=--cfg xxx_borrowable_box
 /// cargo +nightly miri test --all-features
 ///
 /// set MIRIFLAGS=-Zmiri-unique-is-unique -Zmiri-tree-borrows
@@ -138,6 +140,7 @@ unsafe impl Borrowable for () { type Abi = (); }
 /// *   <https://stdrs.dev/nightly/x86_64-unknown-linux-gnu/core/ptr/unique/struct.Unique.html>
 /// *   <https://github.com/rust-lang/unsafe-code-guidelines/issues/326>
 /// *   <https://github.com/rust-lang/miri/>
+#[cfg(xxx_borrowable_box)]
 #[cfg(feature = "alloc")] #[test] fn try_to_break_box_valrows() {
     let a = alloc::boxed::Box::new(core::cell::Cell::new(42));
     let b = crate::Valrow::new(&a);

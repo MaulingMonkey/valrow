@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+    <Type Name="valrow::valrow::Valrow&lt;*&gt;">
+        <DisplayString>{*($T1*)&amp;__0}</DisplayString>
+        <Expand><ExpandedItem>(*($T1*)&amp;__0)</ExpandedItem></Expand>
+    </Type>
+
+    <Type Name="valrow::valrow_mut::ValrowMut&lt;*&gt;">
+        <DisplayString>{*($T1*)&amp;__0}</DisplayString>
+        <Expand><ExpandedItem>(*($T1*)&amp;__0)</ExpandedItem></Expand>
+    </Type>
+
+</AutoVisualizer>

@@ -1,4 +1,5 @@
 #![no_std]
+#![debugger_visualizer(natvis_file = "../debug/valrow.natvis")]
 #![doc = include_str!("../Readme.md")]
 
 

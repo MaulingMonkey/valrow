@@ -15,8 +15,8 @@ By-**val**ue bor**row**s
 [![docs.rs](https://img.shields.io/docsrs/valrow)](https://docs.rs/valrow)
 ![msrv](https://img.shields.io/crates/msrv/valrow)
 <br> <!-- other -->
+[![Changelog](https://img.shields.io/badge/wiki-changelog-blue?logo=github)](https://github.com/MaulingMonkey/valrow/wiki/Changelog)
 [![License](https://img.shields.io/crates/l/valrow.svg)](https://github.com/MaulingMonkey/valrow)
-<!--[![Changelog](https://img.shields.io/badge/wiki-changelog-blue?logo=github)](https://github.com/MaulingMonkey/valrow/wiki/Changelog)-->
 
 </div></center>
 

@@ -10,7 +10,7 @@ use core::ops::Deref;
 
 
 /// A by-value borrow.
-pub struct Valrow<'a, T: Borrowable>(T::Abi, PhantomData<&'a T>);
+#[repr(transparent)] pub struct Valrow<'a, T: Borrowable>(T::Abi, PhantomData<&'a T>);
 
 unsafe impl<'a, T: Borrowable   > Send              for Valrow<'a, T> where &'a T : Send {}
 unsafe impl<'a, T: Borrowable   > Sync              for Valrow<'a, T> where &'a T : Sync {}

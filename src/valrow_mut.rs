@@ -10,7 +10,7 @@ use core::ops::{Deref, DerefMut};
 
 
 /// A by-value mutable/exclusive borrow.  Only usable for Zero Sized Types.  Only useful if <code>\![Copy]</code>.
-pub struct ValrowMut<'a, T: Borrowable>(T::Abi, PhantomData<&'a mut T>);
+#[repr(transparent)] pub struct ValrowMut<'a, T: Borrowable>(T::Abi, PhantomData<&'a mut T>);
 
 unsafe impl<'a, T: Borrowable   > Send              for ValrowMut<'a, T> where &'a mut T : Send {}
 unsafe impl<'a, T: Borrowable   > Sync              for ValrowMut<'a, T> where &'a mut T : Sync {}

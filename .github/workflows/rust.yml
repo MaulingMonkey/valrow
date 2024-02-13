@@ -1,0 +1,30 @@
+name: Rust
+
+on:
+  push:         {branches: [ master ]}
+  pull_request: {branches: [ master ]}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  windows:
+    name: Windows 2019 Server
+    runs-on: windows-2019
+    steps:
+    - {uses: actions/checkout@v2}
+    - {name: Info,                      run: [rustc -V, cargo -V, cmd /C ver]                       }
+    - {name: Build (default features),  run: cargo b --target-dir=target/default-features           }
+    - {name:  Test (default features),  run: cargo t --target-dir=target/default-features           }
+    - {name: Build (all features),      run: cargo b --target-dir=target/all-features --all-features}
+    - {name:  Test (all features),      run: cargo t --target-dir=target/all-features --all-features}
+  linux:
+    name: Ubuntu Latest
+    runs-on: ubuntu-latest
+    steps:
+    - {uses: actions/checkout@v2}
+    - {name: Info, run: [rustc -V, cargo -V, rustc +stable -V, cargo +stable -V, cat /proc/version /etc/*-release]}
+    - {name: Build (default features),  run: cargo b --target-dir=target/default-features           }
+    - {name:  Test (default features),  run: cargo t --target-dir=target/default-features           }
+    - {name: Build (all features),      run: cargo b --target-dir=target/all-features --all-features}
+    - {name:  Test (all features),      run: cargo t --target-dir=target/all-features --all-features}

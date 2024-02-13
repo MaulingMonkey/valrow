@@ -93,7 +93,7 @@ unsafe impl Borrowable for () { type Abi = (); }
 
 #[cfg(feature = "alloc")] const _ : () = {
     use core::ptr::NonNull;
-    unsafe impl<T> Borrowable for alloc::boxed ::Box<T> { type Abi = NonNull<T>; }
+    unsafe impl<T> Borrowable for alloc::boxed ::Box<T> { type Abi = NonNull<T>; } // ❌ UB? See try_to_break_box_valrows below.
     unsafe impl<T> Borrowable for alloc::rc    ::Rc <T> { type Abi = NonNull<T>; }
     unsafe impl<T> Borrowable for alloc::sync  ::Arc<T> { type Abi = NonNull<T>; }
 };
@@ -116,3 +116,49 @@ unsafe impl Borrowable for () { type Abi = (); }
 /// As such, we don't actually implement this.
 ///
 #[cfg(xxx)] unsafe impl<T: Copy> Borrowable for T { type Abi = T; }
+
+
+
+/// [Concerns were raised](https://discord.com/channels/273534239310479360/592856094527848449/1207053316807204964)
+/// about Box's Unique / noalias requirements.  Miri looks like it
+/// [should be able to catch such bugs](https://github.com/rust-lang/rust/pull/94421#issuecomment-1113992481),
+/// but I haven't been able to convince my copy to catch any bugs in this test.
+///
+/// ### Testing
+/// ```cmd
+/// rustup toolchain install nightly -c miri
+///
+/// cargo +nightly miri test --all-features
+///
+/// set MIRIFLAGS=-Zmiri-unique-is-unique -Zmiri-tree-borrows
+/// cargo +nightly miri test --all-features
+/// ```
+///
+/// ### References
+/// *   <https://stdrs.dev/nightly/x86_64-unknown-linux-gnu/core/ptr/unique/struct.Unique.html>
+/// *   <https://github.com/rust-lang/unsafe-code-guidelines/issues/326>
+/// *   <https://github.com/rust-lang/miri/>
+#[cfg(feature = "alloc")] #[test] fn try_to_break_box_valrows() {
+    let a = alloc::boxed::Box::new(core::cell::Cell::new(42));
+    let b = crate::Valrow::new(&a);
+    let c = &a;
+    a.set(1);
+    b.set(2); // possibly a problem?
+    c.set(3);
+    a.set(4);
+    b.set(5); // possibly a problem?
+    c.set(6);
+    let fmt = alloc::format!("{:?}", (&a, b, c));
+    #[cfg(feature = "std")] std::println!("{fmt}");
+
+    // Maybe the temp-Deref s aren't a problem, but would having a persistent pair of different-address `&Box<Cell<_>>`s trigger miri?
+    let b : &alloc::boxed::Box<_> = &*b;
+    a.set( 7);
+    b.set( 8); // possibly a problem?
+    c.set( 9);
+    a.set(10);
+    b.set(11); // possibly a problem?
+    c.set(12);
+    let fmt = alloc::format!("{:?}", (&a, b, c));
+    #[cfg(feature = "std")] std::println!("{fmt}");
+}

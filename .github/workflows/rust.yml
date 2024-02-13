@@ -31,7 +31,7 @@ jobs:
     - {name:  Info Stable,                    run: rustc +stable -V && cargo +stable -V}
     - {name: Build Stable,                    run: cargo +stable build      --target-dir=target/stable  --all-features}
     - {name:  Test Stable,                    run: cargo +stable test       --target-dir=target/stable  --all-features}
-    - {name: Install Nightly,                 run: rustup toolchain add nightly && rustup component add miri --toolchain nightly}
+    - {name: Install Nightly,                 run: rustup toolchain install nightly -c miri}
     - {name:  Info Nightly,                   run: rustc +nightly -V && cargo +nightly -V}
     - {name:  Miri Nightly Tests,             run: cargo +nightly miri test --target-dir=target/nightly --all-features}
     - {name:  Miri Nightly Example debugger,  run: cargo +nightly miri run  --target-dir=target/nightly --all-features --example debugger}

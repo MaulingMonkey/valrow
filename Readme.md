@@ -4,15 +4,21 @@
 
 By-**val**ue bor**row**s
 
-<!--
+<div style="display: inline-block; text-align: left">
+
+<!-- git -->
 [![GitHub](https://img.shields.io/github/stars/MaulingMonkey/valrow.svg?label=GitHub&style=social)](https://github.com/MaulingMonkey/valrow)
 [![Build Status](https://github.com/MaulingMonkey/valrow/workflows/Rust/badge.svg)](https://github.com/MaulingMonkey/valrow/actions?query=workflow%3Arust)
+![Last Commit](https://img.shields.io/github/last-commit/MaulingMonkey/valrow)
+<br> <!-- crates.io -->
 [![crates.io](https://img.shields.io/crates/v/valrow.svg)](https://crates.io/crates/valrow)
 [![docs.rs](https://img.shields.io/docsrs/valrow)](https://docs.rs/valrow)
+![msrv](https://img.shields.io/crates/msrv/valrow)
+<br> <!-- other -->
 [![License](https://img.shields.io/crates/l/valrow.svg)](https://github.com/MaulingMonkey/valrow)
--->
+<!--[![Changelog](https://img.shields.io/badge/wiki-changelog-blue?logo=github)](https://github.com/MaulingMonkey/valrow/wiki/Changelog)-->
 
-</center>
+</div></center>
 
 
 

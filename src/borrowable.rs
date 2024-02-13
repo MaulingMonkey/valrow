@@ -2,6 +2,7 @@
 ///
 /// ### Safety
 /// By implementing this trait, you assert that it's safe and sound for a single instance of `Self` to exist at multiple addresses simultaniously.
+/// This might exclude [`Box`, `Vec`, other users of `Unique`](<https://github.com/rust-lang/unsafe-code-guidelines/issues/326>), and types directly containing those types by value.
 /// Additionally, `Self` and <code>Self::[Abi](Self::Abi)</code> must be ABI compatible.
 ///
 /// Do not implement this on types with direct interior mutability.
@@ -11,33 +12,46 @@
 /// This means implementing the trait would violate your promise of `Self` and `Abi` being ABI compatible.
 ///
 /// ```rust
+/// type ABox<T> = ialloc::boxed::ABox<T, ialloc::allocator::alloc::Global>;
 /// # use valrow::*;
 /// # use std::cell::*;
 /// # use std::mem::*;
 /// # use std::ptr::*;
 /// # use std::rc::*;
-/// #
-/// #[repr(C)] pub struct A(           usize  ); // ✔️      no  interior mutability
-/// #[repr(C)] pub struct B(Rc<        usize >); // ✔️ indirect interior mutability (refcounts)
-/// #[repr(C)] pub struct C(Rc<RefCell<usize>>); // ✔️ indirect interior mutability (+ RefCell)
-/// #[repr(C)] pub struct D(      Cell<usize> ); // ❌   direct interior mutability
-/// #[repr(C)] pub struct Z(             ()   ); // ✔️      no  interior mutability
+/// # use std::sync::*;
 ///
-/// unsafe impl valrow::Borrowable for A { type Abi =                 usize  ; } // ✔️ sound
-/// unsafe impl valrow::Borrowable for B { type Abi = NonNull<        usize >; } // ✔️ sound
-/// unsafe impl valrow::Borrowable for C { type Abi = NonNull<RefCell<usize>>; } // ✔️ sound
-/// unsafe impl valrow::Borrowable for D { type Abi =                 usize  ; } // ❌ unsound
-/// unsafe impl valrow::Borrowable for Z { type Abi =                   ()   ; } // ✔️ sound
+/// #[repr(C)] pub struct B(Box<       usize >); // ⚠️    aliasing violation for Unique<usize>?
+/// #[repr(C)] pub struct AB(ABox<     usize >); // ✔️ no aliasing violation - doesn't use Unique
+/// #[repr(C)] pub struct A(Arc<       usize >); // ✔️ indirect interior mutability (refcounts)
+/// #[repr(C)] pub struct R(Rc<   Cell<usize>>); // ✔️ indirect interior mutability (+ Cell)
+/// #[repr(C)] pub struct C(      Cell<usize> ); // ❌   direct interior mutability
+/// #[repr(C)] pub struct U(           usize  ); // ✔️       no interior mutability
+/// #[repr(C)] pub struct Z(             ()   ); // ✔️       no interior mutability
+///
+/// unsafe impl valrow::Borrowable for B  { type Abi = NonNull<     usize >; } // ⚠️ unsound?
+/// unsafe impl valrow::Borrowable for AB { type Abi = NonNull<     usize >; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for A  { type Abi = NonNull<     usize >; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for R  { type Abi = NonNull<Cell<usize>>; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for C  { type Abi =              usize  ; } // ❌ unsound
+/// unsafe impl valrow::Borrowable for U  { type Abi =              usize  ; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for Z  { type Abi =                ()   ; } // ✔️ sound
+///
+/// // We don't have a means of correctly specifying the Copy-able Abi layout of these types
+/// type AVec<T> = ialloc::vec::AVec<T, ialloc::allocator::alloc::Global>;
+/// #[repr(C)] pub struct V(Vec<       usize >); // ⚠️    aliasing violation for Unique<usize>?
+/// #[repr(C)] pub struct AV(AVec<     usize >); // ✔️ no aliasing violation - doesn't use Unique
+/// unsafe impl valrow::Borrowable for V  { type Abi = (usize, NonNull<[usize]>); } // ❌ bad Abi
+/// unsafe impl valrow::Borrowable for AV { type Abi = (usize, NonNull<[usize]>); } // ❌ bad Abi
 /// #
-/// # impl Clone for B { fn clone(&self) -> Self { Self(self.0.clone()) } }
-/// # let b = B(Rc::new(42));
-/// # let b_borrow_1 = Valrow::new(&b); // doesn't Clone B nor add any indirection
-/// # let b_borrow_2 = b_borrow_1;
-/// # let b1 = B::clone(&b_borrow_1); // but we can still clone
-/// # let b2 = B::clone(&b_borrow_2); // but we can still clone
+/// # impl Clone for A { fn clone(&self) -> Self { Self(self.0.clone()) } }
+/// # let a = A(Arc::new(42));
+/// # let a_borrow_1 = Valrow::new(&a); // doesn't Clone A nor add any indirection
+/// # let a_borrow_2 = a_borrow_1;
+/// # let a1 = A::clone(&a_borrow_1); // but we can still clone
+/// # let a2 = A::clone(&a_borrow_2); // but we can still clone
 /// #
-/// # let d = D(Cell::new(42));
-/// # let d_borrow = Valrow::new(&d); // sadly, this compiles... for now
+/// # let cell = C(Cell::new(42));
+/// # let cell_borrow = Valrow::new(&cell); // sadly, this compiles... for now
 /// ```
 ///
 /// Do not implement this on types where reference address identity is important.

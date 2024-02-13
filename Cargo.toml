@@ -28,3 +28,4 @@ std                                     = ["alloc"]     # unused
 
 [dev-dependencies]
 abistr                                  = "0.1"
+ialloc                                  = "0.0.0-2023-05-28"

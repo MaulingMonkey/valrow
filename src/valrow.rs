@@ -17,6 +17,8 @@ impl<T: Borrowable              > Copy          for Valrow<'_, T> {}
 impl<T: Borrowable              > Clone         for Valrow<'_, T> { fn clone(&self)                        -> Self             { Self(self.0, self.1) }                            }
 impl<T: Borrowable              > AsRef<T>      for Valrow<'_, T> { fn as_ref(&self)                       -> &T               { Self::as_ref(self) }                              }
 impl<T: Borrowable              > Deref         for Valrow<'_, T> { fn deref(&self)                        -> &T               { Self::as_ref(self) } type Target = T;             }
+impl<'a, T: Borrowable          > From<&'a mut T> for Valrow<'a, T> { fn from(reference: &'a mut T) -> Self { Self::new(reference) } }
+impl<'a, T: Borrowable          > From<&'a     T> for Valrow<'a, T> { fn from(reference: &'a     T) -> Self { Self::new(reference) } }
 
 // XXX: actually, how many of these traits are really needed?
 impl<T: Borrowable + Debug      > Debug         for Valrow<'_, T> { fn fmt(&self, fmt: &mut Formatter<'_>) -> fmt::Result      { <T as Debug       >::fmt(self, fmt) }             }

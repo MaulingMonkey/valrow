@@ -17,6 +17,7 @@ impl<T: Borrowable              > AsRef<T>      for ValrowMut<'_, T> { fn as_ref
 impl<T: Borrowable              > AsMut<T>      for ValrowMut<'_, T> { fn as_mut(&mut self)                   -> &mut T           { Self::as_mut(self) }                              }
 impl<T: Borrowable              > Deref         for ValrowMut<'_, T> { fn deref    (&    self)                -> &    T           { Self::as_ref(self) } type Target = T;             }
 impl<T: Borrowable              > DerefMut      for ValrowMut<'_, T> { fn deref_mut(&mut self)                -> &mut T           { Self::as_mut(self) }                              }
+impl<'a, T: Borrowable          > From<&'a mut T> for ValrowMut<'a, T> { fn from(reference: &'a mut T) -> Self { Self::new(reference) } }
 
 // XXX: actually, how many of these traits are really needed?
 impl<T: Borrowable + Debug      > Debug         for ValrowMut<'_, T> { fn fmt(&self, fmt: &mut Formatter<'_>) -> fmt::Result      { <T as Debug       >::fmt(self, fmt) }             }

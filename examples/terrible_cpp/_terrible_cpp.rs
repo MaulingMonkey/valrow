@@ -5,15 +5,25 @@
 #![doc = include_str!("ircd.cpp")]
 //! ```
 //!
-//! There's a lot wrong with this library:
-//! *   No thread safety (e.g. calling `add_user` from multiple threads is undefined behavior.)
-//! *   Not reentrant (e.g. calling `add_user` from within `per_user` results in undefined behavior via invalidated iterators.)
-//! *   No context parameters for callbacks (no sane way to pass captured lambda state.)
+//! There's a lot wrong with this library.  We'll ignore:
+//! *   Vague string encoding (ASCII? UTF8? Windows-1251? System Locale? Which one?)
+//! *   Potential for [static initialization order fiasco](https://en.cppreference.com/w/cpp/language/siof).
+//! *   [`std::bad_alloc` exceptions](https://en.cppreference.com/w/cpp/memory/new/bad_alloc) could cross FFI boundaries.
+//! *   Probably more I haven't bothered to list.
 //!
-//! Even so, if we can at least assume we're the only user of this library,
-//! we *can* build a fairly safe and usable abstraction in Rust by creating some singleton ZSTs and exposing all FFI through them.
-//! <code>[Valrow]\[[Mut](ValrowMut)\]</code> then allows passing borrows of those singletons to context-free FFI callbacks.
+//! However, if we can at least assume we're the only user of this library,
+//! <code>[Valrow]\[[Mut](ValrowMut)\]</code> and ZSTs can help us tackle *these* issues:
+//! *   Not reentrant (e.g. calling `add_user` from within `per_user` results in undefined behavior via invalidated iterators.)<br>
+//!     Fixed by guarding global state with singleton ZSTs.<br>
+//!     <br>
+//! *   No thread safety (e.g. calling `add_user` from multiple threads is undefined behavior.)<br>
+//!     Fixed by putting said singleton ZSTs within rust-owned [`Mutex`](std::sync::Mutex)es.<br>
+//!     <br>
+//! *   No context parameters for callbacks (no sane way to pass captured lambda state.)<br>
+//!     Fixed by static asserting `FnMut()`s are ZSTs, which can still capture borrows via <code>[Valrow]\[[Mut](ValrowMut)\]</code>.
+//!     <br>
 //!
+//! # Demonstration
 //! ```
 #![doc = include_str!("ircd.rs")]
 //! #

@@ -28,13 +28,16 @@
 /// #[repr(transparent)] struct U(        usize  ); // ✔️       no interior mutability
 /// #[repr(transparent)] struct Z(          ()   ); // ✔️       no interior mutability
 ///
-/// unsafe impl valrow::Borrowable for B  { type Abi = NonNull<     usize >; } // ⚠️ unsound?
-/// unsafe impl valrow::Borrowable for AB { type Abi = NonNull<     usize >; } // ✔️ sound
-/// unsafe impl valrow::Borrowable for A  { type Abi = NonNull<     usize >; } // ✔️ sound
-/// unsafe impl valrow::Borrowable for R  { type Abi = NonNull<Cell<usize>>; } // ✔️ sound
-/// unsafe impl valrow::Borrowable for C  { type Abi =              usize  ; } // ❌ unsound
-/// unsafe impl valrow::Borrowable for U  { type Abi =              usize  ; } // ✔️ sound
-/// unsafe impl valrow::Borrowable for Z  { type Abi =                ()   ; } // ✔️ sound
+/// type Abi<T> = <T as Borrowable>::Abi;
+/// unsafe impl valrow::Borrowable for B  { type Abi = NonNull<    usize  >; } // ⚠️ unsound?
+/// unsafe impl valrow::Borrowable for AB { type Abi = NonNull<    usize  >; } // ✔️ sound
+/// # #[cfg(feature = "alloc")] {
+/// unsafe impl valrow::Borrowable for A  { type Abi = Abi<Arc<    usize >>; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for R  { type Abi = Abi<Rc<Cell<usize>>>; } // ✔️ sound
+/// # } // cfg(feature = "alloc")
+/// unsafe impl valrow::Borrowable for C  { type Abi =             usize   ; } // ❌ unsound
+/// unsafe impl valrow::Borrowable for U  { type Abi =             usize   ; } // ✔️ sound
+/// unsafe impl valrow::Borrowable for Z  { type Abi = Abi<          ()   >; } // ✔️ sound
 ///
 /// // We don't have a means of correctly specifying the Copy-able Abi layout of these types
 /// type AVec<T> = ialloc::vec::AVec<T, ialloc::allocator::alloc::Global>;
@@ -43,6 +46,7 @@
 /// unsafe impl valrow::Borrowable for V  { type Abi = (usize, NonNull<[usize]>); } // ❌ bad Abi
 /// unsafe impl valrow::Borrowable for AV { type Abi = (usize, NonNull<[usize]>); } // ❌ bad Abi
 /// #
+/// # #[cfg(feature = "alloc")] {
 /// # impl Clone for A { fn clone(&self) -> Self { Self(self.0.clone()) } }
 /// # let a = A(Arc::new(42));
 /// # let a_borrow_1 = Valrow::new(&a); // doesn't Clone A nor add any indirection
@@ -52,6 +56,7 @@
 /// #
 /// # let cell = C(Cell::new(42));
 /// # let cell_borrow = Valrow::new(&cell); // sadly, this compiles... for now
+/// # }
 /// ```
 ///
 /// Do not implement this on types where reference address identity is important.

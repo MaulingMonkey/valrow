@@ -20,13 +20,13 @@
 /// # use std::rc::*;
 /// # use std::sync::*;
 ///
-/// #[repr(C)] pub struct B(Box<       usize >); // ⚠️    aliasing violation for Unique<usize>?
-/// #[repr(C)] pub struct AB(ABox<     usize >); // ✔️ no aliasing violation - doesn't use Unique
-/// #[repr(C)] pub struct A(Arc<       usize >); // ✔️ indirect interior mutability (refcounts)
-/// #[repr(C)] pub struct R(Rc<   Cell<usize>>); // ✔️ indirect interior mutability (+ Cell)
-/// #[repr(C)] pub struct C(      Cell<usize> ); // ❌   direct interior mutability
-/// #[repr(C)] pub struct U(           usize  ); // ✔️       no interior mutability
-/// #[repr(C)] pub struct Z(             ()   ); // ✔️       no interior mutability
+/// #[repr(transparent)] struct B(Box<    usize >); // ⚠️    aliasing violation for Unique<usize>?
+/// #[repr(transparent)] struct AB(ABox<  usize >); // ✔️ no aliasing violation - not Unique
+/// #[repr(transparent)] struct A(Arc<    usize >); // ✔️ indirect interior mutability (refcounts)
+/// #[repr(transparent)] struct R(Rc<Cell<usize>>); // ✔️ indirect interior mutability (+ Cell)
+/// #[repr(transparent)] struct C(   Cell<usize> ); // ❌   direct interior mutability
+/// #[repr(transparent)] struct U(        usize  ); // ✔️       no interior mutability
+/// #[repr(transparent)] struct Z(          ()   ); // ✔️       no interior mutability
 ///
 /// unsafe impl valrow::Borrowable for B  { type Abi = NonNull<     usize >; } // ⚠️ unsound?
 /// unsafe impl valrow::Borrowable for AB { type Abi = NonNull<     usize >; } // ✔️ sound

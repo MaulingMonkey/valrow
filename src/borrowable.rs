@@ -1,7 +1,7 @@
 /// A type that is borrowable by value.
 ///
 /// ### Safety
-/// By implementing this trait, you assert that it's safe and sound for a single instance of `Self` to exist at multiple addresses simultaniously.
+/// By implementing this trait, you assert that it's safe and sound for a single instance of `Self` to exist at multiple addresses simultaneously.
 /// This might exclude [`Box`, `Vec`, other users of `Unique`](<https://github.com/rust-lang/unsafe-code-guidelines/issues/326>), and types directly containing those types by value.
 /// Additionally, `Self` and <code>Self::[Abi](Self::Abi)</code> must be ABI compatible.
 ///
@@ -66,8 +66,8 @@
 ///     pub static SINGLETON : Singleton = Singleton(());
 /// }
 ///
-/// // this may assert if and only if `Singleton: Borrowable`
-/// fn may_assert_if_singleton_is_borrowable_by_value(a: &Singleton, b: &Singleton) {
+/// // this may fail if and only if `Singleton: Borrowable`
+/// fn may_fail_if_singleton_is_borrowable_by_value(a: &Singleton, b: &Singleton) {
 ///     assert!(addr_eq(a, b));
 /// }
 ///

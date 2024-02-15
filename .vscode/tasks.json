@@ -9,7 +9,7 @@
     "tasks": [
         {
             "label":            "build",
-            "command":          "cargo test",
+            "command":          "cargo test --all-features",
             "group":            { "kind": "build", "isDefault": true },
         },
         {

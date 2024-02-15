@@ -1,9 +1,16 @@
+use core::ptr::NonNull;
+#[cfg(doc)] use core::alloc::Layout;
+
+
+
 /// A type that is borrowable by value.
 ///
 /// ### Safety
 /// By implementing this trait, you assert that it's safe and sound for a single instance of `Self` to exist at multiple addresses simultaneously.
 /// This might exclude [`Box`, `Vec`, other users of `Unique`](<https://github.com/rust-lang/unsafe-code-guidelines/issues/326>), and types directly containing those types by value.
-/// Additionally, `Self` and <code>Self::[Abi](Self::Abi)</code> must be ABI compatible.
+/// Additionally, `Self` and <code>Self::[Abi](Self::Abi)</code> must be ABI compatible:
+/// *   Ideally, `#[repr(transparent)]`-compatible, so by-value borrows can substitute for owned values at FFI boundaries.
+/// *   At absolute minimum, `#[repr(C)]`-compatible (same [`Layout`], same niches, same mutability, same lifetimes, ...)
 ///
 /// Do not implement this on types with direct interior mutability.
 /// The copies of the "single" instance will decohere.
@@ -107,15 +114,22 @@ pub unsafe trait Borrowable
 
 // TODO: make a `#[derive(BorrowableZst)]` that verifies the type is a ZST?
 // TODO: make a `#[derive(Borrowable)]` that verifies all members are `Borrowable`?
-unsafe impl Borrowable for () { type Abi = (); }
 // TODO: add many more core/alloc/std types to improve the usability of said derive?
 
+#[cfg(xxx)] // ❌: ABI should be more permissive for exclusive borrows
+unsafe impl<'a, T: ?Sized> Borrowable for &'a mut T { type Abi = NonNull<T>;    }
+unsafe impl<'a, T: ?Sized> Borrowable for &'a     T { type Abi = &'a T;         }
+unsafe impl<T: ?Sized> Borrowable for *const T      { type Abi = *const T;      }
+unsafe impl<T: ?Sized> Borrowable for *mut   T      { type Abi = *mut   T;      }
+unsafe impl<T: ?Sized> Borrowable for NonNull<T>    { type Abi = NonNull<T>;    }
+
 #[cfg(feature = "alloc")] const _ : () = {
-    use core::ptr::NonNull;
     #[cfg(xxx_borrowable_box)]
-    unsafe impl<T> Borrowable for alloc::boxed ::Box<T> { type Abi = NonNull<T>; } // ❌ UB? See try_to_break_box_valrows below.
-    unsafe impl<T> Borrowable for alloc::rc    ::Rc <T> { type Abi = NonNull<T>; }
-    unsafe impl<T> Borrowable for alloc::sync  ::Arc<T> { type Abi = NonNull<T>; }
+    unsafe impl<T: ?Sized> Borrowable for alloc::boxed ::Box <T> { type Abi = NonNull<T>; } // ❌ UB? See try_to_break_box_valrows below.
+    unsafe impl<T: ?Sized> Borrowable for alloc::rc    ::Rc  <T> { type Abi = NonNull<T>; }
+    unsafe impl<T: ?Sized> Borrowable for alloc::rc    ::Weak<T> { type Abi = NonNull<T>; }
+    unsafe impl<T: ?Sized> Borrowable for alloc::sync  ::Arc <T> { type Abi = NonNull<T>; }
+    unsafe impl<T: ?Sized> Borrowable for alloc::sync  ::Weak<T> { type Abi = NonNull<T>; }
 };
 
 

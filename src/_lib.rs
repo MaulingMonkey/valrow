@@ -18,6 +18,7 @@
     #[path = "zst_callbacks/_zst_callbacks.rs"] pub mod ZstCallbacks;
 }
 
+#[macro_use] mod macros; #[doc(hidden)] pub use macros::_valrow_macros_prelude;
 mod borrowable;     pub use crate::borrowable::*;
 mod valrow;         pub use crate::valrow::*;
 mod valrow_mut;     pub use crate::valrow_mut::*;

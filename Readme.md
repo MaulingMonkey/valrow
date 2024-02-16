@@ -22,6 +22,15 @@ By-**val**ue bor**row**s
 
 
 
+## Raison d'être
+
+Borrow smart pointers and other (small) aggregates, without <code>[Copy]</code>ing or adding indirection via references.  Use cases:
+*   FFI, where extra indirection might be incompatible with fn or type signatures.
+*   Borrowing singleton [ZST]s *as* [ZST]s, allowing for `FnMut → fn` adapters.
+*   Micro-optimization... in theory.
+
+
+
 ## License
 
 Licensed under either of
@@ -38,3 +47,10 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
+
+
+
+<!-- references -->
+
+[Copy]:         https://doc.rust-lang.org/core/marker/trait.Copy.html
+[ZST]:          https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts
